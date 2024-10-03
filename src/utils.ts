@@ -26,12 +26,12 @@ export const getAtalantaId = async () => {
     const data = await fetchData<GetCompetitionsType>(url, headers);
     const team = data.matches.find(
         (match) =>
-            match.homeTeam.name.toLowerCase() === teamToFind.toLowerCase() ||
-            match.awayTeam.name.toLowerCase() === teamToFind.toLowerCase()
+            match.homeTeam.name.toLowerCase().includes(teamToFind.toLowerCase()) ||
+            match.awayTeam.name.toLowerCase().includes(teamToFind.toLowerCase())
     );
 
     if (team) {
-        return team.homeTeam.name.toLowerCase() === teamToFind.toLowerCase()
+        return team.homeTeam.name.toLowerCase().includes(teamToFind.toLowerCase())
             ? team.homeTeam.id
             : team.awayTeam.id;
     } else {
