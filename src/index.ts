@@ -12,17 +12,25 @@ let chatId : number;
 
 bot.start((ctx) => {
     chatId = ctx.chat.id;
-    ctx.reply('Bot avviato!');
+    ctx.reply('🚀 Bot di Telegram avviato.');
 });
 
 bot.launch();
 
 app.get('/', (req, res) => {
-    if (chatId) {
-        bot.telegram.sendMessage(chatId, 'Allerta: Il server è stato chiamato!');
-        res.send('Messaggio di allerta inviato!');
+    if (bot && bot.telegram) {
+        res.send('🚀 Bot Telegram in esecuzione e pronto!');
     } else {
-        res.send('Chat ID non disponibile. Avvia il bot con il comando /start.');
+        res.send('⚠️ Il bot non è avviato correttamente.');
+    }
+});
+
+app.get('/test', (req, res) => {
+    if (chatId) {
+        bot.telegram.sendMessage(chatId, 'Ciao! ⚽👋\n\nHai appena effettuato una chiamata di prova del nostro servizio 💭');
+        res.send('✅ Messaggio di test inviato');
+    } else {
+        res.send('⚠️ Chat ID non disponibile. Avvia il bot con il comando /start.');
     }
 });
 
