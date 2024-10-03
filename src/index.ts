@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { Telegraf } from 'telegraf';
+import { getHomeMatches, getTeamId } from './utils';
 
 dotenv.config();
 
@@ -29,6 +30,32 @@ app.get('/test', (req, res) => {
     if (chatId) {
         bot.telegram.sendMessage(chatId, 'Ciao! ⚽👋\n\nHai appena effettuato una chiamata di prova del nostro servizio 💭');
         res.send('✅ Messaggio di test inviato');
+    } else {
+        res.send('⚠️ Chat ID non disponibile. Avvia il bot con il comando /start.');
+    }
+});
+
+app.get('/run', async (req, res) => {
+    if (chatId) {
+        const teamName = 'Atalanta';
+        const teamId = await getTeamId(teamName);
+        if(teamId) {
+            const homeMatches = await getHomeMatches(teamId);
+            if(homeMatches && homeMatches.length > 0) {
+
+                bot.telegram.sendMessage(chatId, `Prossime partite in casa per ${teamName}:`);
+                homeMatches.forEach(match => {
+                    bot.telegram.sendMessage(chatId, `${match.homeTeam.name} vs ${match.awayTeam.name} il ${new Date(match.utcDate).toLocaleDateString()}`);
+                });
+                res.send('✅ Servizio di notifica avviato');
+            } else {
+                bot.telegram.sendMessage(chatId, '⚠️ Nessuna partita in casa trovata per la squadra selezionata.');
+                res.send('⚠️ Nessuna partita in casa trovata per la squadra selezionata.');
+            }
+        } else {
+            bot.telegram.sendMessage(chatId, '⚠️ Squadra non trovata. Assicurati che il nome della squadra sia corretto.');
+            res.send('⚠️ Squadra non trovata. Assicurati che il nome della squadra sia corretto.');
+        }
     } else {
         res.send('⚠️ Chat ID non disponibile. Avvia il bot con il comando /start.');
     }
