@@ -1,0 +1,48 @@
+app.get("/run", async (req, res) => {
+  if (chatId) {
+    getAtalantaId()
+      .then((teamId) => {
+        if (teamId) {
+          getHomeMatches(teamId)
+            .then((homeMatches) => {
+              if (homeMatches && homeMatches.length > 0) {
+                bot.telegram.sendMessage(
+                  chatId,
+                  `Prossime partite in casa per Atalanta:`
+                );
+                homeMatches.forEach((match) => {
+                  bot.telegram.sendMessage(
+                    chatId,
+                    `${match.homeTeam.name} vs ${
+                      match.awayTeam.name
+                    } il ${new Date(match.utcDate).toLocaleDateString()}`
+                  );
+                });
+                res.send("✅ Servizio di notifica avviato");
+              } else {
+                bot.telegram.sendMessage(
+                  chatId,
+                  "⚠️ Nessuna partita in casa trovata per la squadra selezionata."
+                );
+                res.send(
+                  "⚠️ Nessuna partita in casa trovata per la squadra selezionata."
+                );
+              }
+            })
+            .catch(() => {
+              bot.telegram.sendMessage(
+                chatId,
+                "⚠️ Errore nel recuperare le partite in casa."
+              );
+            });
+        } else {
+          res.send("⚠️ Squadra non trovata.");
+        }
+      })
+      .catch(() => {
+        res.send("⚠️ Errore nel recuperare l'ID della squadra.");
+      });
+  } else {
+    res.send("⚠️ Chat ID non disponibile. Avvia il bot con il comando /start.");
+  }
+});

@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import { Telegraf } from "telegraf";
 import { getAtalantaId, getHomeMatches } from "./utils";
+import { BuildHomeMatchesMessage } from "./utils/chatBotUtils";
 
 dotenv.config();
 
@@ -38,7 +39,7 @@ app.get("/test", (req, res) => {
   }
 });
 
-app.get("/atalanta", (req, res) => {
+app.get("/atalanta/check-id", (req, res) => {
   getAtalantaId()
     .then((id) => {
       if (id) {
@@ -52,7 +53,7 @@ app.get("/atalanta", (req, res) => {
     });
 });
 
-app.get("/run", async (req, res) => {
+app.get("/atalanta/home-matches", (req, res) => {
   if (chatId) {
     getAtalantaId()
       .then((teamId) => {
@@ -60,18 +61,7 @@ app.get("/run", async (req, res) => {
           getHomeMatches(teamId)
             .then((homeMatches) => {
               if (homeMatches && homeMatches.length > 0) {
-                bot.telegram.sendMessage(
-                  chatId,
-                  `Prossime partite in casa per Atalanta:`
-                );
-                homeMatches.forEach((match) => {
-                  bot.telegram.sendMessage(
-                    chatId,
-                    `${match.homeTeam.name} vs ${
-                      match.awayTeam.name
-                    } il ${new Date(match.utcDate).toLocaleDateString()}`
-                  );
-                });
+                bot.telegram.sendMessage(chatId, BuildHomeMatchesMessage(homeMatches));
                 res.send("✅ Servizio di notifica avviato");
               } else {
                 bot.telegram.sendMessage(
