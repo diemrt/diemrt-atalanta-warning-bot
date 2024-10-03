@@ -1,4 +1,6 @@
 import axios from "axios";
+import { GetCompetitionsType } from "./types/GetCompetitionsType";
+import { GetHomeMatchesType } from "./types/GetHomeMatchesType";
 
 const fetchData = async <T>(
   url: string,
@@ -13,47 +15,32 @@ const fetchData = async <T>(
   }
 };
 
-export type GetTeamIdType = {
-  teams: {
-    id: number;
-    name: string;
-  }[];
-};
-export const getTeamId = async (teamName: string) => {
-  const apiKey = process.env.API_KEY;
-  const url = `${process.env.API_BASE_PATH}/teams?name=${teamName}`;
-  const headers = { "X-Auth-Token": apiKey };
+// Get Atalanta's ID from the Serie A competition
+export const getAtalantaId = async () => {
+    const apiKey = process.env.API_KEY;
+    const leagueCode = "SA";
+    const teamToFind = "Atalanta";
+    const url = `${process.env.API_BASE_PATH}/competitions/${leagueCode}/matches`;
+    const headers = { "X-Auth-Token": apiKey };
 
-  try {
-    const data = await fetchData<GetTeamIdType>(url, headers);
-    const team = data.teams.find(
-      (t) => t.name.toLowerCase() === teamName.toLowerCase()
+    const data = await fetchData<GetCompetitionsType>(url, headers);
+    const team = data.matches.find(
+        (match) =>
+            match.homeTeam.name.toLowerCase() === teamToFind.toLowerCase() ||
+            match.awayTeam.name.toLowerCase() === teamToFind.toLowerCase()
     );
-    if (team) {
-      return team.id;
-    } else {
-      console.log("Squadra non trovata");
-      return null;
-    }
-  } catch (error: any) {
-    console.error("Errore nel recuperare l'ID della squadra:", error.message);
-    return null;
-  }
-};
 
-export type GetHomeMatchesType = {
-  matches: {
-    utcDate: string;
-    homeTeam: {
-      id: number;
-      name: string;
-    },
-    awayTeam: {
-      id: number;
-      name: string;
+    if (team) {
+        return team.homeTeam.name.toLowerCase() === teamToFind.toLowerCase()
+            ? team.homeTeam.id
+            : team.awayTeam.id;
+    } else {
+        console.log("Squadra non trovata.");
+        return null;
     }
-  }[];
-};
+}
+
+// Get the next home matches for a team
 export const getHomeMatches = async (teamId: number) => {
   const apiKey = process.env.API_KEY;
   const url = `${process.env.API_BASE_PATH}/teams/${teamId}/matches?status=SCHEDULED`;
